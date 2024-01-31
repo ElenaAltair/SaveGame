@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Main {
@@ -29,6 +30,10 @@ public class Main {
         deleteFiles(pathFile1);
         deleteFiles(pathFile2);
         deleteFiles(pathFile3);
+
+        openZip(pathZip, "D:\\Games\\savegames\\");
+
+        System.out.println(openProgress(pathFile2));
 
     }
 
@@ -77,5 +82,36 @@ public class Main {
         if (myFile.exists()) {
             myFile.delete();
         }
+    }
+
+    public static void openZip(String pathZip, String pathFolder) {
+        try (ZipInputStream zin = new ZipInputStream(new FileInputStream(pathZip))) {
+            ZipEntry entry;
+            String name;
+            while ((entry = zin.getNextEntry()) != null) {
+                name = pathFolder + entry.getName();
+                FileOutputStream fout = new FileOutputStream(name);
+                for (int c = zin.read(); c != -1; c = zin.read()) {
+                    fout.write(c);
+                }
+                fout.flush();
+                zin.closeEntry();
+                fout.close();
+            }
+        } catch (IOException e) {
+            System.out.println("Что-то пошло не так.");
+        }
+    }
+
+    public static String openProgress(String pathFile) {
+        GameProgress gameProgress = null;
+        try (FileInputStream fis = new FileInputStream(pathFile);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+
+            gameProgress = (GameProgress) ois.readObject();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return gameProgress.toString();
     }
 }
